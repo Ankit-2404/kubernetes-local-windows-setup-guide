@@ -40,6 +40,9 @@ flowchart TD
     I[💻 VS Code] --> H
 ```
 
+> 📖 **What this diagram explains**
+> This is the full stack of your local setup, read top to bottom. Your Windows laptop runs Docker Desktop, which provides Docker Engine. **kind** uses Docker Engine to create a Kubernetes cluster inside a Docker container, so no cloud or virtual machine is needed. You control the cluster with **kubectl**, and you write commands and YAML in **VS Code**. Each layer depends on the one above it, so if Docker is not running, nothing below it works.
+
 You will be able to practice:
 
 - Pods
@@ -69,6 +72,9 @@ Docker is a platform for building, packaging, and running applications in contai
 flowchart LR
     A[Application + Dependencies] --> B[Docker] --> C[Container]
 ```
+
+> 📖 **What this diagram explains**
+> Docker takes your application and everything it needs to run (libraries, runtime, settings) and packs it into one unit called a container. The container runs the same way on any machine, which removes the "it works on my computer" problem.
 
 ### Kubernetes
 
@@ -136,6 +142,9 @@ flowchart TD
     C --> D[🧱 Container]
 ```
 
+> 📖 **What this diagram explains**
+> This is the container-like hierarchy of Kubernetes, from biggest to smallest. A **cluster** contains **nodes**, a node runs **Pods**, and a Pod holds one or more **containers**. Kubernetes never schedules a bare container. It always schedules a Pod, and the Pod carries the containers inside it.
+
 ---
 
 ## 3. Why Use kind Instead of Docker Desktop Kubernetes?
@@ -146,6 +155,9 @@ Docker Desktop can provide a local Kubernetes cluster, but this guide uses **kin
 flowchart TD
     A[Docker Desktop] --> B[Docker Engine] --> C[kind] --> D[Kubernetes Cluster]
 ```
+
+> 📖 **What this diagram explains**
+> Docker Desktop is only the base that supplies Docker Engine. The cluster itself is created by **kind**, not by Docker Desktop's built-in Kubernetes. Because kind creates and deletes clusters with one command, you can experiment freely and start fresh whenever something breaks.
 
 This keeps cluster creation explicit and makes it easy to create and delete practice clusters.
 
@@ -184,6 +196,9 @@ This keeps cluster creation explicit and makes it easy to create and delete prac
 flowchart LR
     A[1. Check Docker] --> B[2. Install kind] --> C[3. Install kubectl] --> D[4. Create Cluster] --> E[5. Verify] --> F[6. Practice YAML]
 ```
+
+> 📖 **What this diagram explains**
+> This is the order of the whole setup. Confirm Docker works first, install the two tools (kind and kubectl), create the cluster, check that it is healthy, and only then start practicing with YAML. Following this order avoids most beginner errors, because each step depends on the previous one.
 
 ---
 
@@ -324,6 +339,9 @@ flowchart TD
     E --> F[5. Sets up networking + default StorageClass]
 ```
 
+> 📖 **What this diagram explains**
+> One command triggers five automatic actions. kind first creates a Docker container that acts as your node. It installs and starts Kubernetes inside that container, then brings up the control plane (the "brain"). Next it writes a kubectl context so kubectl knows how to reach the new cluster. Finally it prepares networking and a default storage class, so your apps can communicate and store data.
+
 To wait until the cluster is ready:
 
 ```powershell
@@ -380,6 +398,8 @@ kubectl config current-context
 kubectl config use-context kind-k8s-learning
 ```
 
+A context tells kubectl **which cluster to send commands to**. This matters when you have more than one cluster.
+
 ---
 
 ## 12. What Does cluster-info Do?
@@ -417,6 +437,9 @@ flowchart TD
     CP --> D[kube-controller-manager<br/>Reconciles desired vs actual state]
 ```
 
+> 📖 **What this diagram explains**
+> The control plane is made of four parts, each with one job. The **API server** is the front door that receives every request. **etcd** is the database that remembers the cluster's state. The **scheduler** decides which node should run a new Pod. The **controller manager** keeps watching and corrects the cluster whenever reality differs from what you asked for.
+
 Simplified request flow:
 
 ```mermaid
@@ -431,6 +454,9 @@ flowchart TD
     H --> I[Container runtime]
     I --> J[📦 Pod]
 ```
+
+> 📖 **What this diagram explains**
+> This shows what happens when you run a command such as `kubectl apply`. kubectl sends the request to the API server, which saves it in etcd. Controllers notice the new desired state, and the scheduler picks a node. On that node, the **kubelet** (the node's agent) asks the container runtime to start the containers, and the Pod comes to life.
 
 ---
 
@@ -447,6 +473,9 @@ sequenceDiagram
     D-->>F: Service IP
     F->>B: Request
 ```
+
+> 📖 **What this diagram explains**
+> Pods are created and deleted all the time, so their IP addresses keep changing. Instead of remembering IPs, the frontend simply asks CoreDNS for the name "backend". CoreDNS replies with the Service's stable IP, and the frontend sends its request there. It works like a phone book for your cluster.
 
 Instead of hard-coding a changing Pod IP, applications use Kubernetes Service DNS names. This matters when learning Services.
 
@@ -473,6 +502,9 @@ flowchart TD
     S --> K[kind node container]
     K --> KU[☸️ Kubernetes]
 ```
+
+> 📖 **What this diagram explains**
+> Your laptop holds two separate things. One is your **project files** (YAML), which live in normal Windows folders. The other is the **cluster**, which lives inside Docker's storage in the kind node container. Deleting the cluster does not delete your YAML files, and that is why you should keep them in Git.
 
 > Do not manually edit Docker's internal storage to manage Kubernetes resources. Keep your YAML files in Git instead.
 
@@ -573,6 +605,9 @@ flowchart LR
     C[Deployment] -->|Pod deleted| D[✅ New Pod created]
 ```
 
+> 📖 **What this diagram explains**
+> If you delete a standalone Pod, it is simply gone, because nothing is responsible for bringing it back. A Deployment is different: it keeps a target number of Pods alive, so if one disappears, it creates a replacement. In real projects you almost always use a Deployment instead of a bare Pod.
+
 A standalone Pod has no controller saying *"I always want one copy of this application."* For that, use a **Deployment**.
 
 ---
@@ -624,6 +659,9 @@ flowchart TD
     R --> P3[📦 Pod 3]
 ```
 
+> 📖 **What this diagram explains**
+> You create a **Deployment** and ask for 3 replicas. The Deployment automatically creates a **ReplicaSet**, whose only job is to keep exactly 3 Pods running. So there are three layers of control: Deployment → ReplicaSet → Pods. You manage the Deployment, and Kubernetes handles the rest.
+
 ---
 
 ## 21. Scaling
@@ -640,6 +678,9 @@ This demonstrates the desired-state model:
 flowchart LR
     A["Desired = 5<br/>Actual = 3"] -->|Kubernetes creates 2 Pods| B["Desired = 5<br/>Actual = 5 ✅"]
 ```
+
+> 📖 **What this diagram explains**
+> This is the core idea of Kubernetes: you tell it what you **want** (desired state), and it works to make reality (actual state) match. When you ask for 5 Pods but only 3 exist, Kubernetes notices the gap and creates the 2 missing Pods. Scaling down works the same way in reverse.
 
 ---
 
@@ -658,6 +699,9 @@ A replacement Pod is created because the Deployment wants the configured number 
 flowchart LR
     A[3 Pods running] --> B[1 Pod deleted ❌] --> C[Deployment notices 2 ≠ 3] --> D[New Pod created ✅]
 ```
+
+> 📖 **What this diagram explains**
+> Self-healing is the same desired-state idea applied to failures. When a Pod is deleted or crashes, the Deployment sees that only 2 of the 3 wanted Pods exist. It immediately starts a new Pod to restore the count, without any action from you.
 
 ---
 
@@ -743,6 +787,9 @@ flowchart LR
     A[docker build] --> B[Image in Docker] --> C[kind load docker-image] --> D[Image inside kind node] --> E[Use in YAML]
 ```
 
+> 📖 **What this diagram explains**
+> The kind node is its own separate container, so it cannot see images stored on your laptop's Docker. You build the image first, then copy it into the node with `kind load docker-image`. After that, your YAML can use the image name and Kubernetes will find it.
+
 Then reference it in YAML:
 
 ```yaml
@@ -811,6 +858,9 @@ flowchart TD
     A -->|Wrong cluster| E[kubectl config use-context]
     A -->|Cluster missing| F[kind create cluster + kubectl apply -f]
 ```
+
+> 📖 **What this diagram explains**
+> This is a decision tree for common problems. Find the symptom you see and follow its arrow to the fix. Most problems come from one of three causes: a tool missing from PATH, Docker not running, or kubectl pointing at the wrong cluster.
 
 ### `kind` is not recognized
 
@@ -895,6 +945,9 @@ flowchart LR
     Y -->|still safe| Y2[✅ Recreate anytime]
 ```
 
+> 📖 **What this diagram explains**
+> YAML files describe *what you want*, and the cluster is *where it runs*. They are independent. Deleting the cluster removes only the running environment, while your YAML files stay safe. You can create a new cluster and apply the same files to get everything back.
+
 ### 🧹 Clean up (optional)
 
 ```powershell
@@ -914,6 +967,9 @@ flowchart TD
     K --> L[12. Probes] --> M[13. Requests/Limits] --> N[14. Rolling updates] --> O[15. Rollbacks] --> P[16. Ingress]
     P --> Q[17. Networking] --> R[18. Jobs/CronJobs] --> S[19. StatefulSets] --> T[20. Helm] --> U[21. Multi-node] --> V[22. Troubleshooting]
 ```
+
+> 📖 **What this diagram explains**
+> This is the suggested study order, from easy to advanced. It starts with the basics (architecture, kubectl, YAML), then workloads (Pods, Deployments), then networking and configuration (Services, ConfigMaps, Secrets), then production topics (probes, limits, updates, Ingress), and finally advanced tools (StatefulSets, Helm, multi-node clusters). Each topic builds on the one before it.
 
 ---
 
@@ -988,11 +1044,17 @@ flowchart TD
     C --> APP[Application]
 ```
 
+> 📖 **What this diagram explains**
+> This is how a command travels through Kubernetes. You write in VS Code and run kubectl, which sends the request to the API server. The control plane decides what to do, and a node carries it out by running a Pod. Inside the Pod, a container runs your application.
+
 And for this local setup:
 
 ```mermaid
 flowchart TD
     W[🪟 Windows] --> DD[Docker Desktop] --> DE[Docker Engine] --> KI[kind] --> KC[☸️ Kubernetes Cluster] --> KB[kubectl] --> WL[Your Workloads]
 ```
+
+> 📖 **What this diagram explains**
+> This is the same idea as the very first diagram, simplified into one line: Windows runs Docker, Docker runs kind, kind creates Kubernetes, and kubectl lets you deploy your workloads onto it.
 
 If you understand these diagrams, you understand the foundation of the environment you are building. 🚀
