@@ -1,0 +1,11 @@
+# Kubernetes / local files
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# VS Code local settings (remove this section if you want to commit workspace settings)
+.vscode/
+PUBLISH-TO-GITHUB.md
